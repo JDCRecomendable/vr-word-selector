@@ -8,8 +8,6 @@ void main() {
   runApp(const MyApp());
 }
 
-typedef PhraseBank = Map<String, Map<String, List<String>>>;
-
 const List<String> difficulties = ['Easy', 'Medium', 'Hard'];
 
 const List<String> categories = [
@@ -20,6 +18,25 @@ const List<String> categories = [
   'Sports',
 ];
 
+const String genericBucket = 'Generic';
+const String emotionalBucket = 'Emotional';
+
+class PhraseData {
+  const PhraseData({
+    required this.nounsByCategory,
+    required this.genericAdjectives,
+    required this.emotionalAdjectives,
+    required this.genericGerunds,
+    required this.emotionalGerunds,
+  });
+
+  final Map<String, List<String>> nounsByCategory;
+  final List<String> genericAdjectives;
+  final List<String> emotionalAdjectives;
+  final List<String> genericGerunds;
+  final List<String> emotionalGerunds;
+}
+
 class PhraseLoadException implements Exception {
   const PhraseLoadException(this.message);
 
@@ -29,14 +46,14 @@ class PhraseLoadException implements Exception {
   String toString() => message;
 }
 
-Future<PhraseBank> loadPhraseBank({
+Future<PhraseData> loadPhraseData({
   String assetPath = 'assets/phrases.json',
 }) async {
   final jsonText = await rootBundle.loadString(assetPath);
-  return parsePhraseBank(jsonText);
+  return parsePhraseData(jsonText);
 }
 
-PhraseBank parsePhraseBank(String jsonText) {
+PhraseData parsePhraseData(String jsonText) {
   final Object? decoded;
 
   try {
@@ -51,48 +68,129 @@ PhraseBank parsePhraseBank(String jsonText) {
     throw const PhraseLoadException('Phrase data must be a JSON object.');
   }
 
-  final phraseBank = <String, Map<String, List<String>>>{};
+  final nouns = _readStringListsByKey(
+    decoded,
+    sectionName: 'Nouns',
+    requiredKeys: categories,
+  );
+  final adjectives = _readStringListsByKey(
+    decoded,
+    sectionName: 'Adjectives',
+    requiredKeys: const [genericBucket, emotionalBucket],
+  );
+  final gerunds = _readStringListsByKey(
+    decoded,
+    sectionName: 'Gerunds',
+    requiredKeys: const [genericBucket, emotionalBucket],
+  );
 
-  for (final difficulty in difficulties) {
-    final rawCategories = decoded[difficulty];
-    if (rawCategories is! Map<String, dynamic>) {
-      throw PhraseLoadException('Missing phrase data for $difficulty.');
-    }
+  return PhraseData(
+    nounsByCategory: nouns,
+    genericAdjectives: adjectives[genericBucket]!,
+    emotionalAdjectives: adjectives[emotionalBucket]!,
+    genericGerunds: gerunds[genericBucket]!,
+    emotionalGerunds: gerunds[emotionalBucket]!,
+  );
+}
 
-    final parsedCategories = <String, List<String>>{};
-
-    for (final category in categories) {
-      final rawPhrases = rawCategories[category];
-      if (rawPhrases is! List<dynamic>) {
-        throw PhraseLoadException(
-          'Missing phrase list for $difficulty $category.',
-        );
-      }
-
-      final phrases = <String>[];
-      for (final rawPhrase in rawPhrases) {
-        if (rawPhrase is! String || rawPhrase.trim().isEmpty) {
-          throw PhraseLoadException(
-            'Every phrase in $difficulty $category must be non-empty text.',
-          );
-        }
-
-        phrases.add(rawPhrase.trim());
-      }
-
-      if (phrases.isEmpty) {
-        throw PhraseLoadException(
-          '$difficulty $category needs at least one phrase.',
-        );
-      }
-
-      parsedCategories[category] = phrases;
-    }
-
-    phraseBank[difficulty] = parsedCategories;
+Map<String, List<String>> _readStringListsByKey(
+  Map<String, dynamic> json, {
+  required String sectionName,
+  required List<String> requiredKeys,
+}) {
+  final rawSection = json[sectionName];
+  if (rawSection is! Map<String, dynamic>) {
+    throw PhraseLoadException('Missing $sectionName phrase data.');
   }
 
-  return phraseBank;
+  final section = <String, List<String>>{};
+
+  for (final key in requiredKeys) {
+    final rawList = rawSection[key];
+    if (rawList is! List<dynamic>) {
+      throw PhraseLoadException('Missing phrase list for $sectionName $key.');
+    }
+
+    final phrases = <String>[];
+    for (final rawPhrase in rawList) {
+      if (rawPhrase is! String || rawPhrase.trim().isEmpty) {
+        throw PhraseLoadException(
+          'Every phrase in $sectionName $key must be non-empty text.',
+        );
+      }
+
+      phrases.add(rawPhrase.trim());
+    }
+
+    if (phrases.isEmpty) {
+      throw PhraseLoadException('$sectionName $key needs at least one phrase.');
+    }
+
+    section[key] = phrases;
+  }
+
+  return section;
+}
+
+List<String> buildPhrasePool({
+  required PhraseData phraseData,
+  required String difficulty,
+  required String category,
+}) {
+  final nouns = phraseData.nounsByCategory[category] ?? const <String>[];
+
+  return switch (difficulty) {
+    'Easy' => List<String>.of(nouns),
+    'Medium' => _combineMediumPhrases(phraseData, nouns),
+    'Hard' => _combineHardPhrases(phraseData, nouns),
+    _ => const <String>[],
+  };
+}
+
+List<String> _combineMediumPhrases(PhraseData phraseData, List<String> nouns) {
+  final phrases = <String>[];
+  final adjectives = [
+    ...phraseData.genericAdjectives,
+    ...phraseData.emotionalAdjectives,
+  ];
+
+  for (final adjective in adjectives) {
+    for (final noun in nouns) {
+      phrases.add('$adjective $noun');
+    }
+  }
+
+  return phrases;
+}
+
+List<String> _combineHardPhrases(PhraseData phraseData, List<String> nouns) {
+  final phrases = <String>[];
+  final allowedBuckets = [
+    (
+      gerunds: phraseData.genericGerunds,
+      adjectives: phraseData.genericAdjectives,
+    ),
+    (
+      gerunds: phraseData.genericGerunds,
+      adjectives: phraseData.emotionalAdjectives,
+    ),
+    (
+      gerunds: phraseData.emotionalGerunds,
+      adjectives: phraseData.genericAdjectives,
+    ),
+  ];
+
+  for (final bucketPair in allowedBuckets) {
+    for (final gerund in bucketPair.gerunds) {
+      for (final adjective in bucketPair.adjectives) {
+        for (final noun in nouns) {
+          phrases.add('$gerund $adjective $noun');
+        }
+      }
+    }
+  }
+
+  return phrases;
 }
 
 enum AppScreen { difficulty, category, picker }
@@ -109,31 +207,31 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         useMaterial3: true,
       ),
-      home: const PhraseBankLoader(),
+      home: const PhraseDataLoader(),
     );
   }
 }
 
-class PhraseBankLoader extends StatefulWidget {
-  const PhraseBankLoader({super.key});
+class PhraseDataLoader extends StatefulWidget {
+  const PhraseDataLoader({super.key});
 
   @override
-  State<PhraseBankLoader> createState() => _PhraseBankLoaderState();
+  State<PhraseDataLoader> createState() => _PhraseDataLoaderState();
 }
 
-class _PhraseBankLoaderState extends State<PhraseBankLoader> {
-  late final Future<PhraseBank> _phraseBankFuture;
+class _PhraseDataLoaderState extends State<PhraseDataLoader> {
+  late final Future<PhraseData> _phraseDataFuture;
 
   @override
   void initState() {
     super.initState();
-    _phraseBankFuture = loadPhraseBank();
+    _phraseDataFuture = loadPhraseData();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<PhraseBank>(
-      future: _phraseBankFuture,
+    return FutureBuilder<PhraseData>(
+      future: _phraseDataFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return ErrorScreen(message: snapshot.error.toString());
@@ -143,7 +241,7 @@ class _PhraseBankLoaderState extends State<PhraseBankLoader> {
           return const LoadingScreen();
         }
 
-        return WordChooserPage(phraseBank: snapshot.requireData);
+        return WordChooserPage(phraseData: snapshot.requireData);
       },
     );
   }
@@ -205,9 +303,9 @@ class ErrorScreen extends StatelessWidget {
 }
 
 class WordChooserPage extends StatefulWidget {
-  const WordChooserPage({super.key, required this.phraseBank});
+  const WordChooserPage({super.key, required this.phraseData});
 
-  final PhraseBank phraseBank;
+  final PhraseData phraseData;
 
   @override
   State<WordChooserPage> createState() => _WordChooserPageState();
@@ -267,9 +365,18 @@ class _WordChooserPageState extends State<WordChooserPage> {
   }
 
   void _reshufflePhrases() {
-    final phrases =
-        widget.phraseBank[_selectedDifficulty]?[_selectedCategory] ?? [];
-    _remainingPhrases = List<String>.of(phrases)..shuffle(_random);
+    final difficulty = _selectedDifficulty;
+    final category = _selectedCategory;
+    if (difficulty == null || category == null) {
+      _remainingPhrases = [];
+      return;
+    }
+
+    _remainingPhrases = buildPhrasePool(
+      phraseData: widget.phraseData,
+      difficulty: difficulty,
+      category: category,
+    )..shuffle(_random);
   }
 
   String? _drawNextPhrase() {

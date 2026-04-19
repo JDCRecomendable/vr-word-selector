@@ -74,7 +74,7 @@ void main() {
     expect(find.widgetWithText(FilledButton, 'Animals'), findsNothing);
   });
 
-  testWidgets('new word phrase changes the displayed phrase', (
+  testWidgets('new word phrase avoids exact repeats while phrases remain', (
     WidgetTester tester,
   ) async {
     await _pumpChooserApp(tester);
@@ -84,75 +84,144 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Animals'));
     await tester.pumpAndSettle();
 
-    final firstPhrase = _currentPhraseText(tester);
+    final seenPhrases = <String>{_currentPhraseText(tester)};
 
     await tester.tap(find.widgetWithText(FilledButton, 'New Word/Phrase'));
     await tester.pumpAndSettle();
 
-    expect(_currentPhraseText(tester), isNot(firstPhrase));
+    expect(seenPhrases.add(_currentPhraseText(tester)), isTrue);
   });
 
-  test('parsePhraseBank rejects missing categories', () {
+  testWidgets('easy picker displays a noun-only phrase', (
+    WidgetTester tester,
+  ) async {
+    await _pumpChooserApp(tester);
+
+    await _openPicker(tester, difficulty: 'Easy', category: 'Animals');
+
+    expect(_currentPhraseText(tester).split(' '), hasLength(1));
+  });
+
+  testWidgets('medium picker displays adjective and noun', (
+    WidgetTester tester,
+  ) async {
+    await _pumpChooserApp(tester);
+
+    await _openPicker(tester, difficulty: 'Medium', category: 'Animals');
+
+    expect(_currentPhraseText(tester).split(' '), hasLength(2));
+  });
+
+  testWidgets('hard picker displays gerund adjective and noun', (
+    WidgetTester tester,
+  ) async {
+    await _pumpChooserApp(tester);
+
+    await _openPicker(tester, difficulty: 'Hard', category: 'Animals');
+
+    expect(_currentPhraseText(tester).split(' '), hasLength(3));
+  });
+
+  test(
+    'hard phrases never combine emotional gerund and emotional adjective',
+    () {
+      final phrases = buildPhrasePool(
+        phraseData: _testPhraseData,
+        difficulty: 'Hard',
+        category: 'Animals',
+      );
+
+      expect(phrases, isNotEmpty);
+      expect(phrases, isNot(contains('Crying Sad Cat')));
+      expect(phrases, isNot(contains('Crying Sad Dog')));
+    },
+  );
+
+  test(
+    'buildPhrasePool creates expected Easy Medium and Hard phrase shapes',
+    () {
+      expect(
+        buildPhrasePool(
+          phraseData: _testPhraseData,
+          difficulty: 'Easy',
+          category: 'Animals',
+        ),
+        unorderedEquals(['Cat', 'Dog']),
+      );
+
+      expect(
+        buildPhrasePool(
+          phraseData: _testPhraseData,
+          difficulty: 'Medium',
+          category: 'Animals',
+        ),
+        unorderedEquals(['Bright Cat', 'Bright Dog', 'Sad Cat', 'Sad Dog']),
+      );
+
+      expect(
+        buildPhrasePool(
+          phraseData: _testPhraseData,
+          difficulty: 'Hard',
+          category: 'Animals',
+        ),
+        unorderedEquals([
+          'Running Bright Cat',
+          'Running Bright Dog',
+          'Running Sad Cat',
+          'Running Sad Dog',
+          'Crying Bright Cat',
+          'Crying Bright Dog',
+        ]),
+      );
+    },
+  );
+
+  test('parsePhraseData rejects missing schema keys', () {
     const jsonText = '''
 {
-  "Easy": {
+  "Nouns": {
     "Animals": ["Cat"],
     "Everyday Foods": ["Apple"],
     "Household Objects": ["Chair"],
     "Jobs": ["Teacher"],
     "Sports": ["Soccer"]
   },
-  "Medium": {
-    "Animals": ["Dolphin"],
-    "Everyday Foods": ["Pancakes"],
-    "Household Objects": ["Vacuum cleaner"],
-    "Jobs": ["Firefighter"]
-  },
-  "Hard": {
-    "Animals": ["Chameleon"],
-    "Everyday Foods": ["Blueberry muffin"],
-    "Household Objects": ["Smoke detector"],
-    "Jobs": ["Marine biologist"],
-    "Sports": ["Rock climbing"]
+  "Adjectives": {
+    "Generic": ["Bright"],
+    "Emotional": ["Sad"]
   }
 }
 ''';
 
     expect(
-      () => parsePhraseBank(jsonText),
+      () => parsePhraseData(jsonText),
       throwsA(isA<PhraseLoadException>()),
     );
   });
 
-  test('parsePhraseBank rejects empty phrase lists', () {
+  test('parsePhraseData rejects empty required lists', () {
     const jsonText = '''
 {
-  "Easy": {
+  "Nouns": {
     "Animals": [],
     "Everyday Foods": ["Apple"],
     "Household Objects": ["Chair"],
     "Jobs": ["Teacher"],
     "Sports": ["Soccer"]
   },
-  "Medium": {
-    "Animals": ["Dolphin"],
-    "Everyday Foods": ["Pancakes"],
-    "Household Objects": ["Vacuum cleaner"],
-    "Jobs": ["Firefighter"],
-    "Sports": ["Volleyball"]
+  "Adjectives": {
+    "Generic": ["Bright"],
+    "Emotional": ["Sad"]
   },
-  "Hard": {
-    "Animals": ["Chameleon"],
-    "Everyday Foods": ["Blueberry muffin"],
-    "Household Objects": ["Smoke detector"],
-    "Jobs": ["Marine biologist"],
-    "Sports": ["Rock climbing"]
+  "Gerunds": {
+    "Generic": ["Running"],
+    "Emotional": ["Crying"]
   }
 }
 ''';
 
     expect(
-      () => parsePhraseBank(jsonText),
+      () => parsePhraseData(jsonText),
       throwsA(isA<PhraseLoadException>()),
     );
   });
@@ -173,9 +242,20 @@ Future<void> _pumpLoadedAssetApp(WidgetTester tester) async {
 
 Future<void> _pumpChooserApp(WidgetTester tester) async {
   await tester.pumpWidget(
-    MaterialApp(home: WordChooserPage(phraseBank: _testPhraseBank)),
+    MaterialApp(home: WordChooserPage(phraseData: _testPhraseData)),
   );
   await tester.pump();
+}
+
+Future<void> _openPicker(
+  WidgetTester tester, {
+  required String difficulty,
+  required String category,
+}) async {
+  await tester.tap(find.widgetWithText(FilledButton, difficulty));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(FilledButton, category));
+  await tester.pumpAndSettle();
 }
 
 String _currentPhraseText(WidgetTester tester) {
@@ -185,28 +265,22 @@ String _currentPhraseText(WidgetTester tester) {
   return textWidget.data ?? '';
 }
 
-final PhraseBank _testPhraseBank = parsePhraseBank('''
+final PhraseData _testPhraseData = parsePhraseData('''
 {
-  "Easy": {
+  "Nouns": {
     "Animals": ["Cat", "Dog"],
     "Everyday Foods": ["Apple"],
     "Household Objects": ["Chair"],
     "Jobs": ["Teacher"],
     "Sports": ["Soccer"]
   },
-  "Medium": {
-    "Animals": ["Dolphin"],
-    "Everyday Foods": ["Pancakes"],
-    "Household Objects": ["Vacuum cleaner"],
-    "Jobs": ["Firefighter"],
-    "Sports": ["Volleyball"]
+  "Adjectives": {
+    "Generic": ["Bright"],
+    "Emotional": ["Sad"]
   },
-  "Hard": {
-    "Animals": ["Chameleon"],
-    "Everyday Foods": ["Blueberry muffin"],
-    "Household Objects": ["Smoke detector"],
-    "Jobs": ["Marine biologist"],
-    "Sports": ["Rock climbing"]
+  "Gerunds": {
+    "Generic": ["Running"],
+    "Emotional": ["Crying"]
   }
 }
 ''');
