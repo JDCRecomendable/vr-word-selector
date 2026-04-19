@@ -10,19 +10,13 @@ void main() {
 
 const List<String> difficulties = ['Easy', 'Medium', 'Hard'];
 
-const List<String> categories = [
-  'Animals',
-  'Everyday Foods',
-  'Household Objects',
-  'Jobs',
-  'Sports',
-];
-
 const String genericBucket = 'Generic';
 const String emotionalBucket = 'Emotional';
+const String requiredAnimalCategory = 'Animals';
 
 class PhraseData {
   const PhraseData({
+    required this.categories,
     required this.nounsByCategory,
     required this.genericAdjectives,
     required this.emotionalAdjectives,
@@ -30,6 +24,7 @@ class PhraseData {
     required this.emotionalGerunds,
   });
 
+  final List<String> categories;
   final Map<String, List<String>> nounsByCategory;
   final List<String> genericAdjectives;
   final List<String> emotionalAdjectives;
@@ -68,11 +63,7 @@ PhraseData parsePhraseData(String jsonText) {
     throw const PhraseLoadException('Phrase data must be a JSON object.');
   }
 
-  final nouns = _readStringListsByKey(
-    decoded,
-    sectionName: 'Nouns',
-    requiredKeys: categories,
-  );
+  final nouns = _readNounLists(decoded);
   final adjectives = _readStringListsByKey(
     decoded,
     sectionName: 'Adjectives',
@@ -85,6 +76,7 @@ PhraseData parsePhraseData(String jsonText) {
   );
 
   return PhraseData(
+    categories: List<String>.unmodifiable(nouns.keys),
     nounsByCategory: nouns,
     genericAdjectives: adjectives[genericBucket]!,
     emotionalAdjectives: adjectives[emotionalBucket]!,
@@ -93,10 +85,39 @@ PhraseData parsePhraseData(String jsonText) {
   );
 }
 
+Map<String, List<String>> _readNounLists(Map<String, dynamic> json) {
+  final nouns = _readStringListsFromSection(json, sectionName: 'Nouns');
+
+  if (nouns.isEmpty) {
+    throw const PhraseLoadException('Nouns needs at least one category.');
+  }
+
+  if (!nouns.containsKey(requiredAnimalCategory)) {
+    throw const PhraseLoadException('Nouns must include Animals.');
+  }
+
+  return nouns;
+}
+
 Map<String, List<String>> _readStringListsByKey(
   Map<String, dynamic> json, {
   required String sectionName,
   required List<String> requiredKeys,
+}) {
+  final section = _readStringListsFromSection(json, sectionName: sectionName);
+
+  for (final key in requiredKeys) {
+    if (!section.containsKey(key)) {
+      throw PhraseLoadException('Missing phrase list for $sectionName $key.');
+    }
+  }
+
+  return {for (final key in requiredKeys) key: section[key]!};
+}
+
+Map<String, List<String>> _readStringListsFromSection(
+  Map<String, dynamic> json, {
+  required String sectionName,
 }) {
   final rawSection = json[sectionName];
   if (rawSection is! Map<String, dynamic>) {
@@ -105,8 +126,15 @@ Map<String, List<String>> _readStringListsByKey(
 
   final section = <String, List<String>>{};
 
-  for (final key in requiredKeys) {
-    final rawList = rawSection[key];
+  for (final entry in rawSection.entries) {
+    final key = entry.key.trim();
+    if (key.isEmpty) {
+      throw PhraseLoadException(
+        '$sectionName category names must be non-empty.',
+      );
+    }
+
+    final rawList = entry.value;
     if (rawList is! List<dynamic>) {
       throw PhraseLoadException('Missing phrase list for $sectionName $key.');
     }
@@ -430,7 +458,7 @@ class _WordChooserPageState extends State<WordChooserPage> {
       title: 'Choose Category',
       subtitle: _selectedDifficulty ?? '',
       children: [
-        for (final category in categories)
+        for (final category in widget.phraseData.categories)
           _PrimaryButton(
             label: category,
             onPressed: () => _selectCategory(category),

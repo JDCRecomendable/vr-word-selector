@@ -1,17 +1,21 @@
 {
   "Nouns": {
-    "Animals": ["Cat", "Dog", "Rabbit", "Penguin", "Dolphin"],
-    "Everyday Foods": ["Apple", "Bread", "Soup", "Sandwich", "Pancake"],
-    "Household Objects": ["Chair", "Lamp", "Pillow", "Bookshelf", "Doormat"],
-    "Jobs": ["Teacher", "Doctor", "Chef", "Mechanic", "Librarian"],
-    "Sports": ["Soccer", "Tennis", "Swimming", "Cycling", "Volleyball"]
+    "Animals": ["bear", "crocodile", "dog", "dolphin", "elephant", "flamingo", "fox", "giraffe", "kangaroo", "kiwi", "lion", "owl", "panda", "penguin", "rhino", "shark", "tiger", "whale", "wolf", "zebra"],
+    "Food": ["apple", "banana", "bread", "burger", "cheese", "chocolate", "curry", "donut", "dumpling", "ice-cream", "pancake", "pasta", "pizza", "salad", "sandwich", "soup", "steak", "sushi", "taco", "waffle"],
+    "Jobs": ["apron", "book", "chef", "clipboard", "doctor", "farmer", "firefighter", "hammer", "handcuffs", "hose", "ladder", "mask", "policeman", "screwdriver", "shovel", "suitcase", "syringe", "thermometer", "tire", "wrench"],
+    "Household": ["bed", "blanket", "chair", "clock", "couch", "curtain", "fan", "fork", "kettle", "lamp", "microwave", "mirror", "pillow", "refrigerator", "rug", "spoon", "table", "toaster", "toothbrush", "tv"],
+    "Sports": ["arrow", "ball", "bat", "bike", "dart", "flag", "frisbee", "glove", "goggles", "helmet", "hoop", "medal", "net", "racket", "referee", "snowboard", "stopwatch", "target", "trophy", "whistle"],
+    "Vehicles": ["ambulance", "bicycle", "blimp", "boat", "bus", "canoe", "car", "gondola", "helicopter", "motorcycle", "plane", "scooter", "skateboard", "spaceship", "submarine", "tank", "taxi", "train", "tram", "truck"],
+    "Fantasy": ["alien", "angel", "cyclops", "demon", "dragon", "dwarf", "elf", "fairy", "genie", "ghost", "giant", "goblin", "mermaid", "phoenix", "robot", "unicorn", "vampire", "werewolf", "wizard", "zombie"],
+    "Weapons": ["axe", "baton", "bazooka", "boomerang", "bow", "cannon", "crossbow", "dagger", "grenade", "gun", "hammer", "lance", "mine", "scythe", "shield", "slingshot", "spear", "sword", "trident", "whip"],
+    "Technology": ["battery", "cable", "calculator", "camera", "drone", "flashlight", "headphones", "keyboard", "laptop", "microphone", "mouse", "phone", "printer", "projector", "remote", "robot", "router", "satellite", "speaker", "usb-stick"]
   },
   "Adjectives": {
-    "Generic": ["Tiny", "Shiny", "Noisy", "Colorful", "Wobbly"],
-    "Emotional": ["Joyful", "Grumpy", "Nervous", "Excited", "Lonely"]
+    "Generic": ["blue", "colourful", "electric", "fast", "fat", "futuristic", "giant", "gold", "hairy", "haunted", "new", "old", "pink", "purple", "skinny", "slow", "spicy", "spiky", "steampunk", "sticky", "tiny", "wet"],
+    "Emotional": ["angry", "anxious", "bored", "calm", "confused", "disgusted", "embarrassed", "flirty", "happy", "sad", "scared", "sleepy"]
   },
   "Gerunds": {
-    "Generic": ["Balancing", "Spinning", "Jumping", "Carrying", "Stacking"],
-    "Emotional": ["Celebrating", "Worrying", "Sulking", "Panicking", "Cheering"]
+    "Generic": ["bouncing", "climbing", "dancing", "dying", "exploding", "exploring", "falling", "flying", "freezing", "glowing", "growing", "jumping", "listening", "melting", "rolling", "rotting", "shouting", "shrinking", "singing", "sliding", "sparkling", "spinning", "swimming", "teleporting", "whispering"],
+    "Emotional": ["blushing", "celebrating", "cringing", "crying", "escaping", "frowning", "hiding", "laughing", "sleeping", "yawning"]
   }
 }

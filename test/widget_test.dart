@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:vr_word_guesser/main.dart';
@@ -14,6 +15,12 @@ void main() {
     expect(find.widgetWithText(FilledButton, 'Medium'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Hard'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Animals'), findsNothing);
+
+    final assetPhraseData = parsePhraseData(
+      await rootBundle.loadString('assets/phrases.json'),
+    );
+    expect(assetPhraseData.categories, isNotEmpty);
+    expect(assetPhraseData.categories, contains('Animals'));
   });
 
   testWidgets('moves from difficulty to category chooser', (
@@ -25,7 +32,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Choose Category'), findsOneWidget);
-    for (final category in categories) {
+    for (final category in _testPhraseData.categories) {
       expect(find.widgetWithText(FilledButton, category), findsOneWidget);
     }
     expect(find.widgetWithText(OutlinedButton, 'Back'), findsOneWidget);
@@ -209,6 +216,79 @@ void main() {
     "Jobs": ["Teacher"],
     "Sports": ["Soccer"]
   },
+  "Adjectives": {
+    "Generic": ["Bright"],
+    "Emotional": ["Sad"]
+  },
+  "Gerunds": {
+    "Generic": ["Running"],
+    "Emotional": ["Crying"]
+  }
+}
+''';
+
+    expect(
+      () => parsePhraseData(jsonText),
+      throwsA(isA<PhraseLoadException>()),
+    );
+  });
+
+  test('parsePhraseData derives categories from Nouns in JSON order', () {
+    final phraseData = parsePhraseData('''
+{
+  "Nouns": {
+    "Animals": ["Cat"],
+    "Vehicles": ["Truck"]
+  },
+  "Adjectives": {
+    "Generic": ["Bright"],
+    "Emotional": ["Sad"]
+  },
+  "Gerunds": {
+    "Generic": ["Running"],
+    "Emotional": ["Crying"]
+  }
+}
+''');
+
+    expect(phraseData.categories, ['Animals', 'Vehicles']);
+    expect(
+      buildPhrasePool(
+        phraseData: phraseData,
+        difficulty: 'Easy',
+        category: 'Vehicles',
+      ),
+      ['Truck'],
+    );
+  });
+
+  test('parsePhraseData rejects Nouns without Animals', () {
+    const jsonText = '''
+{
+  "Nouns": {
+    "Vehicles": ["Truck"]
+  },
+  "Adjectives": {
+    "Generic": ["Bright"],
+    "Emotional": ["Sad"]
+  },
+  "Gerunds": {
+    "Generic": ["Running"],
+    "Emotional": ["Crying"]
+  }
+}
+''';
+
+    expect(
+      () => parsePhraseData(jsonText),
+      throwsA(isA<PhraseLoadException>()),
+    );
+  });
+
+  test('parsePhraseData rejects empty Nouns object', () {
+    const jsonText = '''
+{
+  "Nouns": {},
   "Adjectives": {
     "Generic": ["Bright"],
     "Emotional": ["Sad"]
