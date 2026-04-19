@@ -1,0 +1,23 @@
+{
+  "Easy": {
+    "Animals": ["Cat", "Dog", "Fish", "Bird", "Rabbit"],
+    "Everyday Foods": ["Apple", "Rice", "Bread", "Egg", "Soup"],
+    "Household Objects": ["Chair", "Lamp", "Cup", "Table", "Pillow"],
+    "Jobs": ["Teacher", "Doctor", "Chef", "Farmer", "Painter"],
+    "Sports": ["Soccer", "Running", "Tennis", "Swimming", "Basketball"]
+  },
+  "Medium": {
+    "Animals": ["Dolphin", "Kangaroo", "Penguin", "Giraffe", "Octopus"],
+    "Everyday Foods": ["Pancakes", "Spaghetti", "Sandwich", "Omelet", "Salad"],
+    "Household Objects": ["Vacuum cleaner", "Bookshelf", "Toothbrush", "Remote control", "Doormat"],
+    "Jobs": ["Firefighter", "Mechanic", "Photographer", "Librarian", "Carpenter"],
+    "Sports": ["Volleyball", "Skateboarding", "Baseball", "Cycling", "Badminton"]
+  },
+  "Hard": {
+    "Animals": ["Chameleon", "Porcupine", "Hammerhead shark", "Komodo dragon", "Hippopotamus"],
+    "Everyday Foods": ["Blueberry muffin", "Vegetable stir fry", "Chicken quesadilla", "Garlic mashed potatoes", "Peanut butter toast"],
+    "Household Objects": ["Smoke detector", "Laundry basket", "Measuring tape", "Extension cord", "Ironing board"],
+    "Jobs": ["Marine biologist", "Air traffic controller", "Graphic designer", "Emergency dispatcher", "Software developer"],
+    "Sports": ["Rock climbing", "Water polo", "Table tennis", "Figure skating", "Cross-country skiing"]
+  }
+}
