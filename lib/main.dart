@@ -212,7 +212,7 @@ List<String> _combineHardPhrases(PhraseData phraseData, List<String> nouns) {
     for (final gerund in bucketPair.gerunds) {
       for (final adjective in bucketPair.adjectives) {
         for (final noun in nouns) {
-          phrases.add('$gerund $adjective $noun');
+          phrases.add('$adjective $noun $gerund');
         }
       }
     }
