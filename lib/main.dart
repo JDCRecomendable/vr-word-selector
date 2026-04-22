@@ -12,6 +12,7 @@ const List<String> difficulties = ['Easy', 'Medium', 'Hard'];
 
 const String genericBucket = 'Generic';
 const String emotionalBucket = 'Emotional';
+const String jobsBucket = 'Jobs';
 const String requiredAnimalCategory = 'Animals';
 
 class PhraseData {
@@ -22,6 +23,7 @@ class PhraseData {
     required this.emotionalAdjectives,
     required this.genericGerunds,
     required this.emotionalGerunds,
+    required this.jobsGerunds,
   });
 
   final List<String> categories;
@@ -30,6 +32,7 @@ class PhraseData {
   final List<String> emotionalAdjectives;
   final List<String> genericGerunds;
   final List<String> emotionalGerunds;
+  final List<String> jobsGerunds;
 }
 
 class PhraseLoadException implements Exception {
@@ -72,7 +75,7 @@ PhraseData parsePhraseData(String jsonText) {
   final gerunds = _readStringListsByKey(
     decoded,
     sectionName: 'Gerunds',
-    requiredKeys: const [genericBucket, emotionalBucket],
+    requiredKeys: const [genericBucket, emotionalBucket, jobsBucket],
   );
 
   return PhraseData(
@@ -82,6 +85,7 @@ PhraseData parsePhraseData(String jsonText) {
     emotionalAdjectives: adjectives[emotionalBucket]!,
     genericGerunds: gerunds[genericBucket]!,
     emotionalGerunds: gerunds[emotionalBucket]!,
+    jobsGerunds: gerunds[jobsBucket]!,
   );
 }
 
@@ -170,7 +174,7 @@ List<String> buildPhrasePool({
   return switch (difficulty) {
     'Easy' => List<String>.of(nouns),
     'Medium' => _combineMediumPhrases(phraseData, nouns),
-    'Hard' => _combineHardPhrases(phraseData, nouns),
+    'Hard' => _combineHardPhrases(phraseData, category, nouns),
     _ => const <String>[],
   };
 }
@@ -191,17 +195,19 @@ List<String> _combineMediumPhrases(PhraseData phraseData, List<String> nouns) {
   return phrases;
 }
 
-List<String> _combineHardPhrases(PhraseData phraseData, List<String> nouns) {
+List<String> _combineHardPhrases(
+  PhraseData phraseData,
+  String category,
+  List<String> nouns,
+) {
   final phrases = <String>[];
+  final genericLikeGerunds = [
+    ...phraseData.genericGerunds,
+    if (category != jobsBucket) ...phraseData.jobsGerunds,
+  ];
   final allowedBuckets = [
-    (
-      gerunds: phraseData.genericGerunds,
-      adjectives: phraseData.genericAdjectives,
-    ),
-    (
-      gerunds: phraseData.genericGerunds,
-      adjectives: phraseData.emotionalAdjectives,
-    ),
+    (gerunds: genericLikeGerunds, adjectives: phraseData.genericAdjectives),
+    (gerunds: genericLikeGerunds, adjectives: phraseData.emotionalAdjectives),
     (
       gerunds: phraseData.emotionalGerunds,
       adjectives: phraseData.genericAdjectives,

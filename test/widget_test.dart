@@ -141,8 +141,33 @@ void main() {
       expect(phrases, isNotEmpty);
       expect(phrases, isNot(contains('Crying Sad Cat')));
       expect(phrases, isNot(contains('Crying Sad Dog')));
+      expect(phrases, isNot(contains('Teaching Sad Cat')));
+      expect(phrases, isNot(contains('Teaching Sad Dog')));
     },
   );
+
+  test('hard phrases treat jobs gerunds as generic outside Jobs category', () {
+    final phrases = buildPhrasePool(
+      phraseData: _testPhraseData,
+      difficulty: 'Hard',
+      category: 'Animals',
+    );
+
+    expect(phrases, contains('Bright Cat Teaching'));
+    expect(phrases, contains('Sad Dog Teaching'));
+  });
+
+  test('hard phrases exclude jobs gerunds for Jobs category nouns', () {
+    final phrases = buildPhrasePool(
+      phraseData: _testPhraseData,
+      difficulty: 'Hard',
+      category: 'Jobs',
+    );
+
+    expect(phrases, contains('Bright Teacher Running'));
+    expect(phrases, isNot(contains('Bright Teacher Teaching')));
+    expect(phrases, isNot(contains('Sad Teacher Teaching')));
+  });
 
   test(
     'buildPhrasePool creates expected Easy Medium and Hard phrase shapes',
@@ -172,12 +197,16 @@ void main() {
           category: 'Animals',
         ),
         unorderedEquals([
-          'Running Bright Cat',
-          'Running Bright Dog',
-          'Running Sad Cat',
-          'Running Sad Dog',
-          'Crying Bright Cat',
-          'Crying Bright Dog',
+          'Bright Cat Running',
+          'Bright Dog Running',
+          'Sad Cat Running',
+          'Sad Dog Running',
+          'Bright Cat Teaching',
+          'Bright Dog Teaching',
+          'Sad Cat Teaching',
+          'Sad Dog Teaching',
+          'Bright Cat Crying',
+          'Bright Dog Crying',
         ]),
       );
     },
@@ -222,6 +251,31 @@ void main() {
   },
   "Gerunds": {
     "Generic": ["Running"],
+    "Emotional": ["Crying"],
+    "Jobs": ["Teaching"]
+  }
+}
+''';
+
+    expect(
+      () => parsePhraseData(jsonText),
+      throwsA(isA<PhraseLoadException>()),
+    );
+  });
+
+  test('parsePhraseData rejects missing Gerunds Jobs key', () {
+    const jsonText = '''
+{
+  "Nouns": {
+    "Animals": ["Cat"],
+    "Jobs": ["Teacher"]
+  },
+  "Adjectives": {
+    "Generic": ["Bright"],
+    "Emotional": ["Sad"]
+  },
+  "Gerunds": {
+    "Generic": ["Running"],
     "Emotional": ["Crying"]
   }
 }
@@ -246,7 +300,8 @@ void main() {
   },
   "Gerunds": {
     "Generic": ["Running"],
-    "Emotional": ["Crying"]
+    "Emotional": ["Crying"],
+    "Jobs": ["Teaching"]
   }
 }
 ''');
@@ -274,7 +329,8 @@ void main() {
   },
   "Gerunds": {
     "Generic": ["Running"],
-    "Emotional": ["Crying"]
+    "Emotional": ["Crying"],
+    "Jobs": ["Teaching"]
   }
 }
 ''';
@@ -295,7 +351,8 @@ void main() {
   },
   "Gerunds": {
     "Generic": ["Running"],
-    "Emotional": ["Crying"]
+    "Emotional": ["Crying"],
+    "Jobs": ["Teaching"]
   }
 }
 ''';
@@ -360,7 +417,8 @@ final PhraseData _testPhraseData = parsePhraseData('''
   },
   "Gerunds": {
     "Generic": ["Running"],
-    "Emotional": ["Crying"]
+    "Emotional": ["Crying"],
+    "Jobs": ["Teaching"]
   }
 }
 ''');

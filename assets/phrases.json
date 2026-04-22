@@ -11,11 +11,12 @@
     "Technology": ["battery", "calculator", "camera", "drone", "flashlight", "headphones", "keyboard", "laptop", "microphone", "mouse", "phone", "printer", "projector", "remote", "robot", "router", "satellite", "speaker"]
   },
   "Adjectives": {
-    "Generic": ["blue", "colourful", "electric", "fast", "fat", "futuristic", "giant", "gold", "hairy", "haunted", "old", "pink", "purple", "skinny", "slow", "spicy", "spiky", "steampunk", "sticky", "tiny", "wet"],
+    "Generic": ["blue", "colourful", "electric", "fast", "fat", "futuristic", "giant", "gold", "hairy", "haunted", "old", "pink", "purple", "skinny", "slow", "smelly", "spicy", "spiky", "steampunk", "sticky", "tiny", "wet"],
     "Emotional": ["angry", "anxious", "bored", "calm", "confused", "disgusted", "embarrassed", "flirty", "happy", "sad", "scared", "sleepy"]
   },
   "Gerunds": {
-    "Generic": ["burning", "climbing", "dancing", "dying", "exploding", "exploring", "falling", "flying", "freezing", "glowing", "growing", "jumping", "listening", "melting", "rotting", "shouting", "shrinking", "singing", "sliding", "sparkling", "spinning", "swimming", "teleporting", "whispering"],
-    "Emotional": ["blushing", "celebrating", "crying", "escaping", "frowning", "hiding", "laughing", "sleeping"]
+    "Generic": ["burning", "climbing", "dying", "exploding", "exploring", "falling", "flying", "freezing", "glowing", "growing", "jumping", "listening", "melting", "rotting", "shouting", "shrinking", "sliding", "sparkling", "spinning", "swimming", "teleporting", "whispering"],
+    "Emotional": ["blushing", "celebrating", "crying", "escaping", "frowning", "hiding", "laughing", "sleeping"],
+    "Jobs": ["cooking", "dancing", "farming", "fishing", "gardening", "mining", "painting", "sculpting", "singing", "writing"]
   }
 }
